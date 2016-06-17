@@ -11,7 +11,11 @@
       "required": true
     },
     "NUDGE_PULLS_URL": {
-      "description": "URL for looking up pull requests.",
+      "description": "URL for looking up pull requests, something like https://api.github.com/repos/harvard-lil/perma/pulls",
+      "required": true
+    },
+    "NUDGE_CHANNEL": {
+      "description": "Slack channel to nudge in.",
       "required": true
     }
   }
