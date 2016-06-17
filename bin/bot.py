@@ -12,6 +12,10 @@ import pytz
 import os
 from datetime import datetime
 from dateutil import parser
+import logging
+
+logging.basicConfig(format='%(levelname)s:%(message)s',
+                    level=logging.DEBUG)
 
 slack = Slacker(os.environ.get('SLACK_API_TOKEN'))
 r = requests.get(os.environ.get('NUDGE_PULLS_URL'))
@@ -38,3 +42,6 @@ for pull_req in jsoned_response:
 
     if emoji:
         slack.chat.post_message(os.environ.get('NUDGE_CHANNEL'), "Don't keep %s waiting %s %s" % (pull_req['head']['user']['login'], emoji, pull_req['html_url']))
+        logging.info("Nudged about %s" % (pull_req['html_url'],))
+    else:
+        logging.info("No nudging necessary")
