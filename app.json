@@ -1,0 +1,18 @@
+{
+  "name": "Nudgebot",
+  "description": "A Slack bot for nudging about pull requests.",
+  "image": "heroku/python",
+  "repository": "https://github.com/bensteinberg/lil-nudgebot.git",
+  "keywords": [ "python" ],
+  "addons": [ "scheduler" ],
+  "env": {
+    "SLACK_API_TOKEN": {
+      "description": "Secret for connecting to Slack.",
+      "required": true
+    },
+    "NUDGE_PULLS_URL": {
+      "description": "URL for looking up pull requests.",
+      "required": true
+    }
+  }
+}
