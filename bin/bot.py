@@ -41,7 +41,28 @@ for pull_req in jsoned_response:
         emoji = ':triumph:'
 
     if emoji:
-        slack.chat.post_message(os.environ.get('NUDGE_CHANNEL'), "Don't keep %s waiting %s %s" % (pull_req['head']['user']['login'], emoji, pull_req['html_url']), as_user=True)
+        user = pull_req['head']['user']['login']
+        channel = os.environ.get('NUDGE_CHANNEL')
+
+        # Get combined status for this pull req.
+        # To do this we convert the `statuses_url` GitHub gave us from something like
+        #       https://api.github.com/repos/harvard-lil/perma/statuses/de6a92521c5988e735435a41103514f7961d377c
+        # to
+        #       https://api.github.com/repos/harvard-lil/perma/commits/de6a92521c5988e735435a41103514f7961d377c/status
+        # so GitHub will give us a single success or failure `state` in the response.
+        status_summary_url = pull_req['statuses_url'].replace('/statuses/', '/commits/')+'/status'
+        status_summary = json.loads(requests.get(status_summary_url).text)
+
+        # If tests have failed, just send a message to user
+        if status_summary['state'] == 'failure':
+            channel = u'@'+user
+            message = "Uh oh -- tests have failed on %s %s" % (pull_req['html_url'], emoji)
+
+        # Otherwise send message to channel
+        else:
+            message = "Don't keep %s waiting %s %s" % (pull_req['head']['user']['login'], emoji, pull_req['html_url'])
+
+        slack.chat.post_message(channel, message, as_user=True)
         logging.info("Nudged about %s" % (pull_req['html_url'],))
         break
 else:
