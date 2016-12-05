@@ -23,6 +23,8 @@ jsoned_response = json.loads(r.text)
 
 now = datetime.now(pytz.utc)
 
+nudged = False
+
 for pull_req in jsoned_response:
     requested_at = parser.parse(pull_req['created_at'])
     time_diff = now - requested_at
@@ -41,6 +43,7 @@ for pull_req in jsoned_response:
         emoji = ':triumph:'
 
     if emoji:
+        nudged = True
         user = pull_req['head']['user']['login']
         channel = os.environ.get('NUDGE_CHANNEL')
 
@@ -64,6 +67,6 @@ for pull_req in jsoned_response:
 
         slack.chat.post_message(channel, message, as_user=True)
         logging.info("Nudged about %s" % (pull_req['html_url'],))
-        break
-else:
+
+if not nudged:
     logging.info("No nudging necessary")
