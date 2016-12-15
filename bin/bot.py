@@ -56,11 +56,10 @@ for pull_req in jsoned_response:
         status_summary_url = pull_req['statuses_url'].replace('/statuses/', '/commits/')+'/status'
         status_summary = json.loads(requests.get(status_summary_url).text)
 
-        # If tests have failed, just send a message to user
+        # If tests have failed, send a message to the channel -- we can't send to just the user,
+        # since github username and slack username don't necessarily match.
         if status_summary['state'] == 'failure':
-            message = "Uh oh -- tests have failed on %s %s" % (pull_req['html_url'], emoji)
-
-        # Otherwise send message to channel
+            message = "Uh oh -- tests have failed on %s's %s %s" % (pull_req['head']['user']['login'], pull_req['html_url'], emoji)
         else:
             message = "Don't keep %s waiting %s %s" % (pull_req['head']['user']['login'], emoji, pull_req['html_url'])
 
