@@ -58,7 +58,6 @@ for pull_req in jsoned_response:
 
         # If tests have failed, just send a message to user
         if status_summary['state'] == 'failure':
-            channel = u'@'+user
             message = "Uh oh -- tests have failed on %s %s" % (pull_req['html_url'], emoji)
 
         # Otherwise send message to channel
