@@ -2,7 +2,7 @@
   "name": "Nudgebot",
   "description": "A Slack bot for nudging about pull requests.",
   "image": "heroku/python",
-  "repository": "https://github.com/bensteinberg/lil-nudgebot.git",
+  "repository": "https://github.com/harvard-lil/lil-nudgebot",
   "keywords": [ "python" ],
   "addons": [ "scheduler" ],
   "env": {
