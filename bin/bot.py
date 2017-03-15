@@ -44,7 +44,13 @@ if datetime.today().weekday() in range(5):
         elif hours_since_pull_req >= 72:
             emoji = ':triumph:'
 
-        if emoji:
+        # Ignore pull requests that have any reviews requesting changes
+        # Pass the custom accept header to requests, because this API is preview mode
+        # https://developer.github.com/v3/pulls/reviews/
+        reviews_url = pull_req['url'] + '/reviews'
+        reviews = json.loads(requests.get(reviews_url, headers={'accept': 'application/vnd.github.black-cat-preview+json'}).text)
+
+        if emoji and not any(review['state'] == 'CHANGES_REQUESTED' for review in reviews):
             nudged = True
             user = pull_req['head']['user']['login']
             channel = os.environ.get('NUDGE_CHANNEL')
@@ -55,7 +61,7 @@ if datetime.today().weekday() in range(5):
             # to
             #       https://api.github.com/repos/harvard-lil/perma/commits/de6a92521c5988e735435a41103514f7961d377c/status
             # so GitHub will give us a single success or failure `state` in the response.
-            status_summary_url = pull_req['statuses_url'].replace('/statuses/', '/commits/')+'/status'
+            status_summary_url = pull_req['statuses_url'].replace('/statuses/', '/commits/') + '/status'
             status_summary = json.loads(requests.get(status_summary_url).text)
 
             # If tests have failed, send a message to the channel -- we can't send to just the user,
