@@ -10,8 +10,8 @@
       "description": "Secret for connecting to Slack.",
       "required": true
     },
-    "NUDGE_PULLS_URL": {
-      "description": "URL for looking up pull requests, something like https://api.github.com/repos/harvard-lil/perma/pulls",
+    "NUDGE_PULLS_URL_CHANNEL": {
+      "description": "URLs for looking up pull requests, plus channels for posting to Slack, something like https://api.github.com/repos/owner/reponame1/pulls#channel1|https://api.github.com/repos/owner/reponame2/pulls#channel2",
       "required": true
     },
     "NUDGE_PULLS_URL_SPLIT_ON": {
