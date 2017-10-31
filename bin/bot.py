@@ -79,6 +79,7 @@ if datetime.today().weekday() in range(5):
                     message = "Don't keep %s waiting %s %s" % (pull_req['head']['user']['login'], emoji,
                                                                pull_req['html_url'])
 
+                logging.info("Posting to Slack channel {0}".format(channel))
                 slack.chat.post_message(channel, message, as_user=True)
                 logging.info("Nudged about %s" % (pull_req['html_url'],))
 
