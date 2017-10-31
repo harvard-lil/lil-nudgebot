@@ -19,9 +19,5 @@
       "value": "|"
       "required": true
     },
-    "NUDGE_CHANNEL": {
-      "description": "Slack channel to nudge in.",
-      "required": true
-    }
   }
 }
