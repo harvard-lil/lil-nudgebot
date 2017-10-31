@@ -14,6 +14,11 @@
       "description": "URL for looking up pull requests, something like https://api.github.com/repos/harvard-lil/perma/pulls",
       "required": true
     },
+    "NUDGE_PULLS_URL_SPLIT_ON": {
+      "description": "Character for splitting URLs for looking up pull requests",
+      "value": "|"
+      "required": true
+    },
     "NUDGE_CHANNEL": {
       "description": "Slack channel to nudge in.",
       "required": true
