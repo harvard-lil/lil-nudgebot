@@ -16,7 +16,7 @@
     },
     "NUDGE_PULLS_URL_SPLIT_ON": {
       "description": "Character for splitting URLs for looking up pull requests",
-      "value": "|"
+      "value": "|",
       "required": true
     },
   }
