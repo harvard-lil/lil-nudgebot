@@ -26,7 +26,9 @@ if datetime.today().weekday() in range(5):
     for (url, channel) in [(target[0], '#{}'.format(target[1]))
                            for target in map(lambda x: x.split('#'),
                                              targets.split(os.environ.get('NUDGE_PULLS_URL_SPLIT_ON')))]:
-        r = requests.get(url)
+
+        # Pass the custom accept header to requests, "to access the new draft parameter during the preview period"
+        r = requests.get(url, headers={'accept': 'application/vnd.github.shadow-cat-preview+json'})
         jsoned_response = json.loads(r.text)
 
         now = datetime.now(pytz.utc)
@@ -50,6 +52,9 @@ if datetime.today().weekday() in range(5):
             elif hours_since_pull_req >= 72:
                 emoji = ':triumph:'
 
+            # Ignore draft PRs
+            draft = pull_req['draft']
+
             # Ignore pull requests that have any reviews requesting changes
             # Pass the custom accept header to requests, because this API is preview mode
             # https://developer.github.com/v3/pulls/reviews/
@@ -57,7 +62,7 @@ if datetime.today().weekday() in range(5):
             reviews = json.loads(requests.get(reviews_url,
                                               headers={'accept': 'application/vnd.github.black-cat-preview+json'}).text)
 
-            if emoji and not any(review['state'] == 'CHANGES_REQUESTED' for review in reviews):
+            if emoji and not draft and not any(review['state'] == 'CHANGES_REQUESTED' for review in reviews):
                 nudged = True
                 user = pull_req['head']['user']['login']
 
