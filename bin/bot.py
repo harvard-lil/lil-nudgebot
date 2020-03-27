@@ -1,6 +1,8 @@
 #!/usr/bin/env python
-
+import json
 from collections import Counter
+from random import randint, shuffle, choice
+
 from slacker import Slacker
 import requests
 import pytz
@@ -20,6 +22,7 @@ if datetime.today().weekday() in range(5):
 
     ### Front integration ###
 
+    front_users = json.loads(os.environ.get('FRONT_USERS'))
     front_token = os.environ.get('FRONT_API_TOKEN')
     # FRONT_INBOX_TO_SLACK_CHANNEL maps Front inboxes to Slack channels, like 'Inbox Name#channel-name|Inbox Name#channel-name...'
     front_inbox_to_slack_channel = dict(token.split('#') for token in os.environ.get('FRONT_INBOX_TO_SLACK_CHANNEL').split('|'))
@@ -29,7 +32,18 @@ if datetime.today().weekday() in range(5):
 
     # fetch each Front inbox
     inboxes = front_api('https://api2.frontapp.com/inboxes')
-    for inbox in inboxes['_results']:
+
+    # get fake names
+    try:
+        fake_names = requests.get('http://names.drycodes.com/%s?nameOptions=funnyWords&separator=space' % len(inboxes['_results'])).json()
+    except Exception:
+        fake_names = None
+    if fake_names:
+        random_emoji = "champagne tada hotfire exploding_head boom 100 white_check_mark clap rocket true".split(' ')
+        for i, name in enumerate(fake_names):
+            front_users[i] = {'user': name, 'emoji': choice(random_emoji)}
+
+    for i, inbox in enumerate(inboxes['_results']):
 
         # skip inboxes not defined in FRONT_INBOX_TO_SLACK_CHANNEL
         if inbox['name'] not in front_inbox_to_slack_channel:
@@ -41,12 +55,19 @@ if datetime.today().weekday() in range(5):
         unassigned = front_api(conversations_url, {'q[statuses][]': 'unassigned'})
         unassigned_count = len(unassigned['_results'])
         assigned = front_api(conversations_url, {'q[statuses][]': 'assigned'})
-        assigned_counts = Counter((a['assignee']['first_name'] or a['assignee']['username']) for a in assigned['_results'])
+        assigned_counts = Counter((a['assignee']['username']) for a in assigned['_results'])
 
         # post message to Slack
         message = f"Front status: {unassigned_count} messages unassigned"
-        for k, v in assigned_counts.items():
-            message += f"\n* {v} message{'s' if v > 1 else ''} assigned to {k}"
+        assigned_counts = list(assigned_counts.items())
+        if fake_names:
+            assigned_counts += [(i, randint(1,10))]
+        shuffle(assigned_counts)
+        for k, v in assigned_counts:
+            front_user = front_users.get(k)
+            slack_name = "@"+front_user['user'] if front_user else k
+            emoji = f":{front_user['emoji']}:" if front_user and front_user['emoji'] else ""
+            message += f"\n* {v} message{'s' if v > 1 else ''} assigned to {slack_name} {emoji}"
         logging.info(f"Posting to Slack channel {slack_channel}: {message}")
         if slack_token:
             slack.chat.post_message(slack_channel, message, as_user=True)
