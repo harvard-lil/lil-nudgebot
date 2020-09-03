@@ -30,7 +30,7 @@ slack = Slacker(slack_token)
 def slack_post(channel, message):
     logging.info(f"Posting to Slack channel {channel}: {message}")
     if slack_token:
-        slack.chat.post_message(slack_channel, message, as_user=True)
+        slack.chat.post_message(channel, message, as_user=True)
     else:
         logging.info("No slack token!")
 
