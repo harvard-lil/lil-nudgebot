@@ -40,8 +40,11 @@ def slack_post(channel, message):
 front_users = json.loads(os.environ.get('FRONT_USERS'))
 front_token = os.environ.get('FRONT_API_TOKEN')
 # FRONT_INBOX_TO_SLACK_CHANNEL maps Front inboxes to Slack channels, like 'Inbox Name#channel-name|Inbox Name#channel-name...'
-front_inbox_to_slack_channel = dict(token.split('#') for token in os.environ.get('FRONT_INBOX_TO_SLACK_CHANNEL').split('|'))
-
+try:
+    front_inbox_to_slack_channel = dict(token.split('#') for token in os.environ.get('FRONT_INBOX_TO_SLACK_CHANNEL').split('|'))
+except ValueError:
+    # the env var is empty
+    front_inbox_to_slack_channel = {}
 
 def front_api(url, params={}):
     return requests.get(url, params, headers={'Authorization': f'Bearer {front_token}'}).json()
