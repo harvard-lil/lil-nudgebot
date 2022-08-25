@@ -152,6 +152,13 @@ for target in os.environ.get('NUDGE_PULLS_URL_CHANNEL').split('|'):
                 message = "Don't keep %s waiting %s %s" % (pull_req['head']['user']['login'], emoji,
                                                            pull_req['html_url'])
 
+            # fetch any requested reviewers
+            reviewers = pull_req['requested_reviewers']
+            if reviewers:
+                s = '' if len(reviewers) == 1 else 's'
+                handles = ', '.join([r['login'] for r in reviewers])
+                message += f'Pending reviewer{s}: {handles}'
+
             slack_post(channel, message)
         else:
             logging.info(f"Ignoring {pull_req['html_url']}")
