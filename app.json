@@ -18,6 +18,6 @@
       "description": "Character for splitting URLs for looking up pull requests",
       "value": "|",
       "required": true
-    },
+    }
   }
 }
