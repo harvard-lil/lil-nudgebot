@@ -183,7 +183,7 @@ for target in os.environ.get('NUDGE_PULLS_URL_CHANNEL').split('|'):
             if reviewers:
                 s = '' if len(reviewers) == 1 else 's'
                 handles = ', '.join([r['login'] for r in reviewers])
-                message += f'Pending reviewer{s}: {handles}'
+                message += f'\nPending reviewer{s}: {handles}'
 
             slack_post(channel, message)
         else:
