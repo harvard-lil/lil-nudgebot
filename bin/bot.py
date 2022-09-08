@@ -112,8 +112,6 @@ github_users = json.loads(os.environ.get('GITHUB_USERS'))
 # each URL is an endpoint like
 # https://api.github.com/repos/harvard-lil/perma/pulls
 for url, channel in json.loads(os.environ.get('NUDGE_PULLS_URL_CHANNEL')).items():  # noqa
-    channel = '#' + channel
-
     # Pass the custom accept header to requests,
     # "to access the new draft parameter during the preview period"
     headers = {'accept': 'application/vnd.github.shadow-cat-preview+json'}
@@ -186,7 +184,7 @@ for url, channel in json.loads(os.environ.get('NUDGE_PULLS_URL_CHANNEL')).items(
                 handles = ', '.join([github_users.get(r['login'], r['login']) for r in reviewers])  # noqa
                 message += f'\nPending reviewer{s}: {handles}'
 
-            slack_post(channel, message)
+            slack_post(f'#{channel}', message)
         else:
             logging.info(f"Ignoring {pull_req['html_url']}")
 
