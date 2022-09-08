@@ -1,7 +1,7 @@
 lil-nudgebot
 ============
 
-A Slack bot for nudging LIL Slack channels about pull requests and Front messages.
+A Slack bot for nudging LIL Slack channels about pull requests.
 
 Deployment
 ----------
