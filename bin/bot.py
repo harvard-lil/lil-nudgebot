@@ -105,22 +105,19 @@ for i, inbox in enumerate(inboxes['_results']):
 
 # Github integration #
 
-# GITHUB_USERS is a dict of GitHub users and matching Slack usernames;
-# this may need revision too often
+# GITHUB_USERS is a dict of GitHub users and matching Slack IDs
 github_users = json.loads(os.environ.get('GITHUB_USERS'))
 
-# NUDGE_PULLS_URL_CHANNEL is a list of urls and channels
-# like 'url1#channel1|url2#channel2...'
+# NUDGE_PULLS_URL_CHANNEL is a dict of URLs and channels
 # each URL is an endpoint like
 # https://api.github.com/repos/harvard-lil/perma/pulls
-for target in os.environ.get('NUDGE_PULLS_URL_CHANNEL').split(os.environ.get('NUDGE_PULLS_URL_SPLIT_ON')):
-    url, channel = target.split('#')
+for url, channel in json.loads(os.environ.get('NUDGE_PULLS_URL_CHANNEL')).items():  # noqa
     channel = '#' + channel
 
     # Pass the custom accept header to requests,
     # "to access the new draft parameter during the preview period"
-    pull_reqs = requests.get(url,
-                             headers={'accept': 'application/vnd.github.shadow-cat-preview+json'}).json()  # noqa
+    headers = {'accept': 'application/vnd.github.shadow-cat-preview+json'}
+    pull_reqs = requests.get(url, headers=headers).json()
 
     now = datetime.now(pytz.utc)
     nudged = False
@@ -186,7 +183,7 @@ for target in os.environ.get('NUDGE_PULLS_URL_CHANNEL').split(os.environ.get('NU
             reviewers = pull_req['requested_reviewers']
             if reviewers:
                 s = '' if len(reviewers) == 1 else 's'
-                handles = ', '.join([github_users.get(r['login'], r['login']) for r in reviewers])
+                handles = ', '.join([github_users.get(r['login'], r['login']) for r in reviewers])  # noqa
                 message += f'\nPending reviewer{s}: {handles}'
 
             slack_post(channel, message)
