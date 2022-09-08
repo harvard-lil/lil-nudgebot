@@ -81,17 +81,21 @@ for url, channel in json.loads(os.environ.get('NUDGE_PULLS_URL_CHANNEL')).items(
             # Get combined status for this pull req.
             # To do this we convert the `statuses_url` GitHub gave us from
             # something like
-            #       https://api.github.com/repos/harvard-lil/perma/statuses/de6a92521c5988e735435a41103514f7961d377c  # noqa
+            #   https://api.github.com/repos/<org>/<repo>/statuses/<hash>
             # to
-            #       https://api.github.com/repos/harvard-lil/perma/commits/de6a92521c5988e735435a41103514f7961d377c/status  # noqa
+            #   https://api.github.com/repos/<org>/<repo>/commits/<hash>/status
             # so GitHub will give us a single success or failure `state`
             # in the response.
-            status_summary_url = pull_req['statuses_url'].replace('/statuses/', '/commits/') + '/status'  # noqa
-            status_summary = requests.get(status_summary_url).json()
+            status_summary = requests.get(
+                pull_req['statuses_url'].replace(
+                    '/statuses/', '/commits/'
+                ) + '/status'
+            ).json()
 
             # If tests have failed, send a message to the channel --
             # we can't send to just the user, since github username and slack
-            # username don't necessarily match.
+            # username don't necessarily match -- or can we now, with
+            # github_users? In some cases, maybe.
             if status_summary['state'] == 'failure':
                 message = "Uh oh -- tests have failed on %s's %s %s" % (
                     pull_req['head']['user']['login'],
@@ -112,7 +116,10 @@ for url, channel in json.loads(os.environ.get('NUDGE_PULLS_URL_CHANNEL')).items(
             reviewers = pull_req['requested_reviewers']
             if reviewers:
                 s = '' if len(reviewers) == 1 else 's'
-                handles = ', '.join([github_users.get(r['login'], r['login']) for r in reviewers])  # noqa
+                handles = ', '.join(
+                    [github_users.get(r['login'], r['login'])
+                     for r in reviewers]
+                )
                 message += f'\nPending reviewer{s}: {handles}'
 
             slack_post(f'#{channel}', message)
