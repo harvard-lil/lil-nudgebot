@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 import json
 import sys
-from collections import defaultdict
-from time import time
 
 from slacker import Slacker
 import requests
@@ -35,73 +33,6 @@ def slack_post(channel, message):
     else:
         logging.info("No slack token!")
 
-
-# Front integration #
-
-front_users = json.loads(os.environ.get('FRONT_USERS'))
-front_token = os.environ.get('FRONT_API_TOKEN')
-# FRONT_INBOX_TO_SLACK_CHANNEL maps Front inboxes to Slack channels,
-# like 'Inbox Name#channel-name|Inbox Name#channel-name...'
-try:
-    front_inbox_to_slack_channel = dict(token.split('#')
-                                        for token
-                                        in os.environ.get('FRONT_INBOX_TO_SLACK_CHANNEL').split('|'))  # noqa
-except ValueError:
-    # the env var is empty
-    front_inbox_to_slack_channel = {}
-
-
-def front_api(url, params={}):
-    return requests.get(url,
-                        params,
-                        headers={'Authorization': f'Bearer {front_token}'}).json()  # noqa
-
-
-def front_conversation_age(conversation):
-    """
-    return number of days since last message in given Front conversation
-    """
-    return int((time() - conversation['last_message']['created_at']) / 60 / 60 / 24)  # noqa
-
-
-# fetch each Front inbox
-inboxes = front_api('https://api2.frontapp.com/inboxes')
-
-for i, inbox in enumerate(inboxes['_results']):
-
-    # skip inboxes not defined in FRONT_INBOX_TO_SLACK_CHANNEL
-    if inbox['name'] not in front_inbox_to_slack_channel:
-        continue
-    slack_channel = '#' + front_inbox_to_slack_channel[inbox['name']]
-
-    # fetch assigned and unassigned message counts
-    conversations_url = inbox['_links']['related']['conversations']
-    unassigned = front_api(conversations_url, {'q[statuses][]': 'unassigned'})
-    old_unassigned = [c for c in unassigned['_results']
-                      if front_conversation_age(c) >= 1]
-    unassigned_count = len(old_unassigned)
-    assigned = front_api(conversations_url, {'q[statuses][]': 'assigned'})
-    assigned_counts = defaultdict(lambda: {'count': 0, 'max_age': 0})
-    for c in assigned['_results']:
-        age = front_conversation_age(c)
-        if age < 1:
-            continue
-        username = c['assignee']['username']
-        assigned_counts[username]['count'] += 1
-        assigned_counts[username]['max_age'] = max(assigned_counts[username]['max_age'], age)  # noqa
-
-    # post message to Slack
-    if not unassigned_count and not assigned_counts:
-        continue
-    if unassigned_count:
-        slack_post(slack_channel,
-                   f"{unassigned_count} Front messages unassigned for over a day!")  # noqa
-    for k, v in assigned_counts.items():
-        front_user = front_users.get(k)
-        slack_name = "@"+front_user['user'] if front_user else k
-        emoji = f":{front_user['emoji']}:" if front_user and front_user['emoji'] else ""  # noqa
-        message = f"{v['count']} message{'s' if v['count'] > 1 else ''} assigned to {slack_name} {emoji} -- oldest is {v['max_age']} day{'s' if v['max_age'] > 1 else ''} old"  # noqa
-        slack_post(slack_channel, message)
 
 # Github integration #
 
