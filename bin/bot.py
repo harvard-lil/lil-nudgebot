@@ -105,11 +105,15 @@ for i, inbox in enumerate(inboxes['_results']):
 
 # Github integration #
 
+# GITHUB_USERS is a dict of GitHub users and matching Slack usernames;
+# this may need revision too often
+github_users = json.loads(os.environ.get('GITHUB_USERS'))
+
 # NUDGE_PULLS_URL_CHANNEL is a list of urls and channels
 # like 'url1#channel1|url2#channel2...'
 # each URL is an endpoint like
 # https://api.github.com/repos/harvard-lil/perma/pulls
-for target in os.environ.get('NUDGE_PULLS_URL_CHANNEL').split('|'):
+for target in os.environ.get('NUDGE_PULLS_URL_CHANNEL').split(os.environ.get('NUDGE_PULLS_URL_SPLIT_ON')):
     url, channel = target.split('#')
     channel = '#' + channel
 
@@ -182,7 +186,7 @@ for target in os.environ.get('NUDGE_PULLS_URL_CHANNEL').split('|'):
             reviewers = pull_req['requested_reviewers']
             if reviewers:
                 s = '' if len(reviewers) == 1 else 's'
-                handles = ', '.join([r['login'] for r in reviewers])
+                handles = ', '.join([github_users.get(r['login'], r['login']) for r in reviewers])
                 message += f'\nPending reviewer{s}: {handles}'
 
             slack_post(channel, message)
