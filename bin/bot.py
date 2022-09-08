@@ -77,6 +77,7 @@ for url, channel in json.loads(os.environ.get('NUDGE_PULLS_URL_CHANNEL')).items(
         if not ignore_pr:
             nudged = True
             user = pull_req['head']['user']['login']
+            pr = pull_req['html_url']
 
             # Get combined status for this pull req.
             # To do this we convert the `statuses_url` GitHub gave us from
@@ -97,20 +98,12 @@ for url, channel in json.loads(os.environ.get('NUDGE_PULLS_URL_CHANNEL')).items(
             # username don't necessarily match -- or can we now, with
             # github_users? In some cases, maybe.
             if status_summary['state'] == 'failure':
-                message = "Uh oh -- tests have failed on %s's %s %s" % (
-                    pull_req['head']['user']['login'],
-                    pull_req['html_url'], emoji
-                )
+                message = f"Uh oh -- tests have failed on {user}'s {pr} {emoji}"  # noqa
             elif any(review['state'] == 'CHANGES_REQUESTED'
                      for review in reviews):
-                message = "Changes requested on %s's %s" % (
-                    pull_req['head']['user']['login'], pull_req['html_url']
-                )
+                message = f"Changes requested on {user}'s {pr}"
             else:
-                message = "Don't keep %s waiting %s %s" % (
-                    pull_req['head']['user']['login'], emoji,
-                    pull_req['html_url']
-                )
+                message = f"Don't keep {user} waiting {emoji} {pr}"
 
             # fetch any requested reviewers
             reviewers = pull_req['requested_reviewers']
