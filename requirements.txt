@@ -1,4 +1,4 @@
 python-dateutil==2.8.1
-pytz==2019.3
+pytz==2020.1
 requests==2.22.0
 slacker==0.13.0
