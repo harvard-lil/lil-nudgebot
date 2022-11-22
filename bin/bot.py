@@ -43,9 +43,7 @@ github_users = json.loads(os.environ.get("GITHUB_USERS"))
 # https://api.github.com/repos/harvard-lil/perma/pulls
 for url, channel in json.loads(
     os.environ.get("NUDGE_PULLS_URL_CHANNEL")
-).items():  # noqa
-    # Pass the custom accept header to requests,
-    # "to access the new draft parameter during the preview period"
+).items():
     headers = {"accept": "application/vnd.github.v3+json"}
     pull_reqs = requests.get(url, headers=headers).json()
 
@@ -90,7 +88,7 @@ for url, channel in json.loads(
             # so GitHub will give us a single success or failure `state`
             # in the response.
             status_summary = requests.get(
-                pull_req["statuses_url"].replace("/statuses/", "/commits/") + "/status"
+                pull_req["statuses_url"].replace("/statuses/", "/commits/") + "/status"  # noqa
             ).json()
 
             # If tests have failed, send a message to the channel --
@@ -99,7 +97,7 @@ for url, channel in json.loads(
             # github_users? In some cases, maybe.
             if status_summary["state"] == "failure":
                 message = f"Uh oh -- tests have failed on {user}'s {pr} {emoji}"  # noqa
-            elif any(review["state"] == "CHANGES_REQUESTED" for review in reviews):
+            elif any(review["state"] == "CHANGES_REQUESTED" for review in reviews):  # noqa
                 message = f"Changes requested on {user}'s {pr}"
             else:
                 message = f"Don't keep {user} waiting {emoji} {pr}"
@@ -109,7 +107,7 @@ for url, channel in json.loads(
             if reviewers:
                 s = "" if len(reviewers) == 1 else "s"
                 handles = ", ".join(
-                    [github_users.get(r["login"], r["login"]) for r in reviewers]
+                    [github_users.get(r["login"], r["login"]) for r in reviewers]  # noqa
                 )
                 message += f"\nPending reviewer{s}: {handles}"
 
