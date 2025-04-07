@@ -2,7 +2,9 @@
 import json
 import sys
 
-from slacker import Slacker
+from slack_sdk import WebClient
+from slack_sdk.errors import SlackApiError
+
 import requests
 import pytz
 import os
@@ -22,13 +24,20 @@ if datetime.today().weekday() > 4:
 # Slack setup #
 
 slack_token = os.environ.get("SLACK_API_TOKEN")
-slack = Slacker(slack_token)
+client = WebClient(token=slack_token)
 
 
-def slack_post(channel, message):
-    logging.info(f"Posting to Slack channel {channel}: {message}")
+def slack_post(channel_id, message):
+    logging.info(f"Posting to Slack channel {channel_id}: {message}")
     if slack_token:
-        slack.chat.post_message(channel, message, as_user=True)
+        try:
+            response = client.chat_postMessage(
+                channel=channel_id,
+                text=message
+            )
+        except SlackApiError as e:
+            # You will get a SlackApiError if "ok" is False
+            logging.error(e)
     else:
         logging.info("No slack token!")
 
@@ -38,11 +47,11 @@ def slack_post(channel, message):
 # GITHUB_USERS is a dict of GitHub users and matching Slack IDs
 github_users = json.loads(os.environ.get("GITHUB_USERS"))
 
-# NUDGE_PULLS_URL_CHANNEL is a dict of URLs and channels
+# NUDGE_PULLS_URL_CHANNEL_ID is a dict of URLs and channel IDs
 # each URL is an endpoint like
 # https://api.github.com/repos/harvard-lil/perma/pulls
-for url, channel in json.loads(
-    os.environ.get("NUDGE_PULLS_URL_CHANNEL")
+for url, channel_id in json.loads(
+    os.environ.get("NUDGE_PULLS_URL_CHANNEL_ID")
 ).items():
     headers = {"accept": "application/vnd.github.v3+json"}
     pull_reqs = requests.get(url, headers=headers).json()
@@ -111,7 +120,7 @@ for url, channel in json.loads(
                 )
                 message += f"\nPending reviewer{s}: {handles}"
 
-            slack_post(f"#{channel}", message)
+            slack_post(channel_id, message)
         else:
             logging.info(f"Ignoring {pull_req['html_url']}")
 
